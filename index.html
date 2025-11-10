@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>じゅん忘年会 出席フォーム</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background-color: #f9fbfd; }
+    h1, h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+    select, input[type="password"] {
+      padding: 5px 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 10px; padding: 6px 15px; border: none;
+      border-radius: 5px; background-color: #3498db; color: white; cursor: pointer;
+    }
+    button:hover { background-color: #2980b9; }
+    #seatInfo { margin-top: 15px; font-weight: bold; color: #e67e22; }
+    #adminSection { display: none; margin-top: 20px; background-color: #eef4f8; padding: 15px; border-radius: 10px; }
+    #adminList li { padding: 5px; border-bottom: 1px solid #bdc3c7; }
+    #resetBtn { background-color: #e74c3c; }
+    #resetBtn:hover { background-color: #c0392b; }
+  </style>
+</head>
+<body>
+  <h1>焼肉じゅん忘年会 出席フォーム</h1>
+
+  <label for="name">名前を選択：</label>
+  <select id="name">
+    <option value="">選択してください</option>
+  </select>
+
+  <div id="seatInfo"></div>
+
+  <button id="joinBtn">参加</button>
+
+  <h2>管理者ログイン</h2>
+  <input type="password" id="adminPassword" placeholder="パスワード">
+  <button id="adminLoginBtn">ログイン</button>
+
+  <div id="adminSection">
+    <h2>参加済みリスト（リアルタイム）</h2>
+    <button id="resetBtn">リセット</button>
+    <ul id="adminList"></ul>
+  </div>
+
+  <!-- Firebase SDK 読み込み -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    // あなたのFirebase設定
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkJtoQYRUNbmkLyMMq2JXODX79wnXNp-Q",
+      authDomain: "jun-attendance.firebaseapp.com",
+      databaseURL: "https://jun-attendance-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "jun-attendance",
+      storageBucket: "jun-attendance.firebasestorage.app",
+      messagingSenderId: "1026360314641",
+      appId: "1:1026360314641:web:84ecac98f023da34b31ab0"
+    };
+
+    // Firebase初期化
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 参加者データ
+    const participantsData = [
+      { number: 1 , name: "前川", table: "A07"},
+      { number: 2, name: "村上", table: "A07" },
+      { number: 3, name: "野村", table: "A07" },
+      { number: 4, name: "田村", table: "A07" },
+      { number: 5, name: "赤司", table: "A07" },
+      { number: 6, name: "内山", table: "A07" },
+      { number: 7, name: "山本", table: "A08" },
+      { number: 8, name: "吉原", table: "A08" },
+      { number: 9, name: "水口", table: "A08" },
+      { number: 10, name: "富山", table: "A08" },
+      { number: 11, name: "鴻山", table: "A08" },
+      { number: 12, name: "田中", table: "A08" },
+      { number: 13, name: "塚本", table: "A09" },
+      { number: 14, name: "梶井", table: "A09" },
+      { number: 15, name: "増原", table: "A09" },
+      { number: 16, name: "白田", table: "A09" },
+      { number: 17, name: "森", table: "A10" },
+      { number: 18, name: "中山", table: "A10" },
+      { number: 19, name: "肥塚", table: "A10" },
+      { number: 20, name: "田頭", table: "A10" },
+      { number: 21, name: "中谷", table: "A10" },
+    ];
+
+    // 要素取得
+    const nameSelect = document.getElementById("name");
+    const seatInfo = document.getElementById("seatInfo");
+    const joinBtn = document.getElementById("joinBtn");
+    const adminLoginBtn = document.getElementById("adminLoginBtn");
+    const adminPasswordInput = document.getElementById("adminPassword");
+    const adminSection = document.getElementById("adminSection");
+    const adminList = document.getElementById("adminList");
+    const resetBtn = document.getElementById("resetBtn");
+    const ADMIN_PASSWORD = "20061030";
+
+    // 名前リスト生成
+    participantsData.forEach(p => {
+      const option = document.createElement("option");
+      option.value = p.name;
+      option.textContent = p.name;
+      nameSelect.appendChild(option);
+    });
+
+    // 参加ボタン押下
+    joinBtn.addEventListener("click", () => {
+      const selectedName = nameSelect.value;
+      if (!selectedName) return alert("名前を選択してください");
+
+      const person = participantsData.find(p => p.name === selectedName);
+      if (!person) return alert("名前が見つかりません");
+
+      if (!confirm(`「${selectedName}」さんで間違いないですか？`)) return;
+
+      seatInfo.textContent = `あなたの席は ${person.table}卓 ${person.number}番 です。`;
+
+      // Firebaseに登録
+      const participantRef = ref(db, "participants/" + person.name);
+      set(participantRef, {
+        name: person.name,
+        number: person.number,
+        table: person.table,
+        timestamp: new Date().toLocaleString()
+      });
+      alert("参加を記録しました！");
+    });
+
+    // 管理者ログイン
+    adminLoginBtn.addEventListener("click", () => {
+      if (adminPasswordInput.value === ADMIN_PASSWORD) {
+        alert("管理者ログイン成功");
+        adminSection.style.display = "block";
+        adminPasswordInput.value = "";
+      } else {
+        alert("パスワードが違います");
+      }
+    });
+
+    // リアルタイム更新
+    const participantsRef = ref(db, "participants");
+    onValue(participantsRef, (snapshot) => {
+      adminList.innerHTML = "";
+      snapshot.forEach((child) => {
+        const data = child.val();
+        const li = document.createElement("li");
+        li.textContent = `${data.number} - ${data.name} (${data.table})`;
+        adminList.appendChild(li);
+      });
+    });
+
+    // リセット機能
+    resetBtn.addEventListener("click", () => {
+      if (confirm("リストを全て削除しますか？")) {
+        remove(participantsRef);
+      }
+    });
+  </script>
+</body>
+</html>
