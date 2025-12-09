@@ -1,28 +1,122 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>じゅん忘年会 出席フォーム</title>
+
   <style>
-    body { font-family: sans-serif; padding: 20px; background-color: #f9fbfd; }
-    h1, h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+    body {
+      font-family: "Hiragino Sans","Yu Gothic", sans-serif;
+      padding: 15px;
+      background: linear-gradient(#dff3ff, #ffffff);
+      max-width: 480px;
+      margin: auto;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ❄️ 見出し（クリスマス×雪） */
+    h1, h2 {
+      color: #e74c3c;
+      border-bottom: 2px solid #2ecc71;
+      padding-bottom: 5px;
+      font-size: 1.35rem;
+      text-shadow: 1px 1px 2px #fff;
+    }
+
+    label {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
     select, input[type="password"] {
-      padding: 5px 10px; margin-top: 10px; border-radius: 5px; border: 1px solid #ccc;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 12px;
+      border: 1px solid #aac8d8;
+      width: 100%;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.9);
     }
+
+    /* 🎄 ボタン類 */
     button {
-      margin-top: 10px; padding: 6px 15px; border: none;
-      border-radius: 5px; background-color: #3498db; color: white; cursor: pointer;
+      margin-top: 12px;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      background: #e74c3c;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(180, 50, 50, 0.3);
+      transition: 0.2s;
     }
-    button:hover { background-color: #2980b9; }
-    #seatInfo { margin-top: 15px; font-weight: bold; color: #e67e22; }
-    #adminSection { display: none; margin-top: 20px; background-color: #eef4f8; padding: 15px; border-radius: 10px; }
-    #adminList li { padding: 5px; border-bottom: 1px solid #bdc3c7; }
-    #resetBtn { background-color: #e74c3c; }
-    #resetBtn:hover { background-color: #c0392b; }
+    button:hover {
+      background: #c0392b;
+    }
+
+    #seatInfo {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #2c3e50;
+      font-size: 1.1rem;
+      background: #fff7e6;
+      padding: 10px;
+      border-radius: 10px;
+      border-left: 4px solid #e67e22;
+    }
+
+    /* 🎄 管理者エリア */
+    #adminSection {
+      display: none;
+      margin-top: 20px;
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      backdrop-filter: blur(3px);
+    }
+
+    #adminList li {
+      padding: 8px;
+      border-bottom: 1px solid #ccc;
+      font-size: 0.95rem;
+    }
+
+    /* リセットボタンだけ赤 */
+    #resetBtn {
+      background-color: #c0392b;
+    }
+    #resetBtn:hover {
+      background-color: #992d22;
+    }
+
+    /* ❄️ 雪アニメーション */
+    .snow {
+      position: fixed;
+      top: -10px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      pointer-events: none;
+      animation: fall 10s linear infinite;
+      z-index: 999;
+    }
+
+    @keyframes fall {
+      from { transform: translateY(-10px) translateX(0); }
+      to   { transform: translateY(110vh) translateX(25px); }
+    }
   </style>
 </head>
+
 <body>
-  <h1>焼肉じゅん忘年会 出席フォーム</h1>
+
+  <h1>🎄 焼肉じゅん 忘年会 出席フォーム ❄️</h1>
 
   <label for="name">名前を選択：</label>
   <select id="name">
@@ -31,24 +125,23 @@
 
   <div id="seatInfo"></div>
 
-  <button id="joinBtn">参加</button>
+  <button id="joinBtn">参加する 🎅</button>
 
-  <h2>管理者ログイン</h2>
-  <input type="password" id="adminPassword" placeholder="パスワード">
+  <h2>🔑 管理者ログイン</h2>
+  <input type="password" id="adminPassword" placeholder="パスワードを入力">
   <button id="adminLoginBtn">ログイン</button>
 
   <div id="adminSection">
-    <h2>参加済みリスト（リアルタイム）</h2>
-    <button id="resetBtn">リセット</button>
+    <h2>参加者リスト（リアルタイム）</h2>
+    <button id="resetBtn">リストをリセット</button>
     <ul id="adminList"></ul>
   </div>
 
-  <!-- Firebase SDK 読み込み -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    // あなたのFirebase設定
     const firebaseConfig = {
       apiKey: "AIzaSyCkJtoQYRUNbmkLyMMq2JXODX79wnXNp-Q",
       authDomain: "jun-attendance.firebaseapp.com",
@@ -59,11 +152,9 @@
       appId: "1:1026360314641:web:84ecac98f023da34b31ab0"
     };
 
-    // Firebase初期化
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // 参加者データ
     const participantsData = [
       { number: 1 , name: "前川", table: "A07"},
       { number: 2, name: "村上", table: "A07" },
@@ -88,7 +179,6 @@
       { number: 21, name: "中谷", table: "A10" },
     ];
 
-    // 要素取得
     const nameSelect = document.getElementById("name");
     const seatInfo = document.getElementById("seatInfo");
     const joinBtn = document.getElementById("joinBtn");
@@ -99,7 +189,7 @@
     const resetBtn = document.getElementById("resetBtn");
     const ADMIN_PASSWORD = "20061030";
 
-    // 名前リスト生成
+    /* 名前リスト生成 */
     participantsData.forEach(p => {
       const option = document.createElement("option");
       option.value = p.name;
@@ -107,19 +197,17 @@
       nameSelect.appendChild(option);
     });
 
-    // 参加ボタン押下
+    /* 参加ボタン */
     joinBtn.addEventListener("click", () => {
       const selectedName = nameSelect.value;
-      if (!selectedName) return alert("名前を選択してください");
+      if (!selectedName) return alert("名前を選択してください 🎄");
 
       const person = participantsData.find(p => p.name === selectedName);
-      if (!person) return alert("名前が見つかりません");
 
-      if (!confirm(`「${selectedName}」さんで間違いないですか？`)) return;
+      if (!confirm(`「${selectedName}」さんで間違いない？`)) return;
 
-      seatInfo.textContent = `あなたの席は ${person.table}卓 ${person.number}番 です。`;
+      seatInfo.textContent = `あなたの席は 🎄 ${person.table}卓 ／ ${person.number}番 です ❄️`;
 
-      // Firebaseに登録
       const participantRef = ref(db, "participants/" + person.name);
       set(participantRef, {
         name: person.name,
@@ -127,38 +215,54 @@
         table: person.table,
         timestamp: new Date().toLocaleString()
       });
-      alert("参加を記録しました！");
+
+      alert("参加を記録しました！⛄");
     });
 
-    // 管理者ログイン
+    /* 管理者ログイン */
     adminLoginBtn.addEventListener("click", () => {
       if (adminPasswordInput.value === ADMIN_PASSWORD) {
-        alert("管理者ログイン成功");
+        alert("管理者ログイン成功 🎄");
         adminSection.style.display = "block";
         adminPasswordInput.value = "";
       } else {
-        alert("パスワードが違います");
+        alert("パスワードが違います ❌");
       }
     });
 
-    // リアルタイム更新
+    /* 参加者一覧リアルタイム */
     const participantsRef = ref(db, "participants");
     onValue(participantsRef, (snapshot) => {
       adminList.innerHTML = "";
       snapshot.forEach((child) => {
         const data = child.val();
         const li = document.createElement("li");
-        li.textContent = `${data.number} - ${data.name} (${data.table})`;
+        li.textContent = `${data.number}番 - ${data.name} (${data.table})`;
         adminList.appendChild(li);
       });
     });
 
-    // リセット機能
+    /* リセット */
     resetBtn.addEventListener("click", () => {
-      if (confirm("リストを全て削除しますか？")) {
+      if (confirm("本当にリストを削除しますか？❄️")) {
         remove(participantsRef);
       }
     });
+
   </script>
+
+  <!-- ❄️ 雪のエフェクト生成 -->
+  <script>
+    for (let i = 0; i < 25; i++) {
+      const snow = document.createElement("div");
+      snow.className = "snow";
+      snow.style.left = Math.random() * 100 + "vw";
+      snow.style.animationDuration = 8 + Math.random() * 5 + "s";
+      snow.style.opacity = Math.random();
+      snow.style.width = snow.style.height = 5 + Math.random() * 6 + "px";
+      document.body.appendChild(snow);
+    }
+  </script>
+
 </body>
 </html>
