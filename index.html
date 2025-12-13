@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -16,7 +16,6 @@
       overflow-x: hidden;
     }
 
-    /* ❄️ 見出し（クリスマス×雪） */
     h1, h2 {
       color: #e74c3c;
       border-bottom: 2px solid #2ecc71;
@@ -40,7 +39,6 @@
       background: rgba(255,255,255,0.9);
     }
 
-    /* 🎄 ボタン類 */
     button {
       margin-top: 12px;
       padding: 12px;
@@ -55,6 +53,7 @@
       box-shadow: 0 4px 8px rgba(180, 50, 50, 0.3);
       transition: 0.2s;
     }
+
     button:hover {
       background: #c0392b;
     }
@@ -70,15 +69,13 @@
       border-left: 4px solid #e67e22;
     }
 
-    /* 🎄 管理者エリア */
     #adminSection {
       display: none;
       margin-top: 20px;
-      background-color: rgba(255, 255, 255, 0.85);
+      background-color: rgba(255, 255, 255, 0.9);
       padding: 15px;
       border-radius: 12px;
       box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      backdrop-filter: blur(3px);
     }
 
     #adminList li {
@@ -87,15 +84,10 @@
       font-size: 0.95rem;
     }
 
-    /* リセットボタンだけ赤 */
     #resetBtn {
       background-color: #c0392b;
     }
-    #resetBtn:hover {
-      background-color: #992d22;
-    }
 
-    /* ❄️ 雪アニメーション */
     .snow {
       position: fixed;
       top: -10px;
@@ -116,153 +108,139 @@
 
 <body>
 
-  <h1>🎄 焼肉じゅん 忘年会 出席フォーム ❄️</h1>
+<h1>🎄 焼肉じゅん 忘年会 出席フォーム ❄️</h1>
 
-  <label for="name">名前を選択：</label>
-  <select id="name">
-    <option value="">選択してください</option>
-  </select>
+<label>名前を選択：</label>
+<select id="name">
+  <option value="">選択してください</option>
+</select>
 
-  <div id="seatInfo"></div>
+<div id="seatInfo"></div>
 
-  <button id="joinBtn">参加する 🎅</button>
+<button id="joinBtn">参加する 🎅</button>
 
-  <h2>🔑 管理者ログイン</h2>
-  <input type="password" id="adminPassword" placeholder="パスワードを入力">
-  <button id="adminLoginBtn">ログイン</button>
+<h2>🔑 参加確認ログイン</h2>
+<input type="password" id="adminPassword" placeholder="パスワードを入力">
+<button id="adminLoginBtn">ログイン</button>
 
-  <div id="adminSection">
-    <h2>参加者リスト（リアルタイム）</h2>
-    <button id="resetBtn">リストをリセット</button>
-    <ul id="adminList"></ul>
-  </div>
+<div id="adminSection">
+  <h2>参加者リスト（リアルタイム）</h2>
+  <button id="resetBtn">リストをリセット</button>
+  <ul id="adminList"></ul>
+</div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkJtoQYRUNbmkLyMMq2JXODX79wnXNp-Q",
-      authDomain: "jun-attendance.firebaseapp.com",
-      databaseURL: "https://jun-attendance-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "jun-attendance",
-      storageBucket: "jun-attendance.firebasestorage.app",
-      messagingSenderId: "1026360314641",
-      appId: "1:1026360314641:web:84ecac98f023da34b31ab0"
-    };
+  /* 🔥 Firebase設定（そのまま使ってOK） */
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "jun-attendance-2506c.firebaseapp.com",
+    databaseURL: "https://jun-attendance-2506c-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "jun-attendance-2506c",
+    storageBucket: "jun-attendance-2506c.appspot.com",
+    messagingSenderId: "XXXX",
+    appId: "XXXX"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    const participantsData = [
-      { number: 1 , name: "前川", table: "A07"},
-      { number: 2, name: "村上", table: "A07" },
-      { number: 3, name: "野村", table: "A07" },
-      { number: 4, name: "田村", table: "A07" },
-      { number: 5, name: "赤司", table: "A07" },
-      { number: 6, name: "内山", table: "A07" },
-      { number: 7, name: "山本", table: "A08" },
-      { number: 8, name: "吉原", table: "A08" },
-      { number: 9, name: "水口", table: "A08" },
-      { number: 10, name: "富山", table: "A08" },
-      { number: 11, name: "鴻山", table: "A08" },
-      { number: 12, name: "田中", table: "A08" },
-      { number: 13, name: "塚本", table: "A09" },
-      { number: 14, name: "梶井", table: "A09" },
-      { number: 15, name: "増原", table: "A09" },
-      { number: 16, name: "白田", table: "A09" },
-      { number: 17, name: "森", table: "A10" },
-      { number: 18, name: "中山", table: "A10" },
-      { number: 19, name: "肥塚", table: "A10" },
-      { number: 20, name: "田頭", table: "A10" },
-      { number: 21, name: "中谷", table: "A10" },
-    ];
+  const ADMIN_PASSWORD = "20061030";
 
-    const nameSelect = document.getElementById("name");
-    const seatInfo = document.getElementById("seatInfo");
-    const joinBtn = document.getElementById("joinBtn");
-    const adminLoginBtn = document.getElementById("adminLoginBtn");
-    const adminPasswordInput = document.getElementById("adminPassword");
-    const adminSection = document.getElementById("adminSection");
-    const adminList = document.getElementById("adminList");
-    const resetBtn = document.getElementById("resetBtn");
-    const ADMIN_PASSWORD = "20061030";
+  const participantsData = [
+    { number: 1 , name: "前川", table: "A07"},
+    { number: 2 , name: "村上", table: "A07"},
+    { number: 3 , name: "野村", table: "A07"},
+    { number: 4 , name: "田村", table: "A07"},
+    { number: 5 , name: "赤司", table: "A07"},
+    { number: 6 , name: "内山", table: "A07"},
+    { number: 7 , name: "山本", table: "A08"},
+    { number: 8 , name: "吉原", table: "A08"},
+    { number: 9 , name: "水口", table: "A08"},
+    { number: 10, name: "富山", table: "A08"},
+    { number: 11, name: "鴻山", table: "A08"},
+    { number: 12, name: "田中", table: "A08"},
+    { number: 13, name: "塚本", table: "A09"},
+    { number: 14, name: "梶井", table: "A09"},
+    { number: 15, name: "増原", table: "A09"},
+    { number: 16, name: "白田", table: "A09"},
+    { number: 17, name: "森", table: "A10"},
+    { number: 18, name: "中山", table: "A10"},
+    { number: 19, name: "肥塚", table: "A10"},
+    { number: 20, name: "田頭", table: "A10"},
+    { number: 21, name: "中谷", table: "A10"}
+  ];
 
-    /* 名前リスト生成 */
-    participantsData.forEach(p => {
-      const option = document.createElement("option");
-      option.value = p.name;
-      option.textContent = p.name;
-      nameSelect.appendChild(option);
-    });
+  const nameSelect = document.getElementById("name");
+  const seatInfo = document.getElementById("seatInfo");
+  const adminSection = document.getElementById("adminSection");
+  const adminList = document.getElementById("adminList");
 
-    /* 参加ボタン */
-    joinBtn.addEventListener("click", () => {
-      const selectedName = nameSelect.value;
-      if (!selectedName) return alert("名前を選択してください 🎄");
+  participantsData.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.name;
+    opt.textContent = p.name;
+    nameSelect.appendChild(opt);
+  });
 
-      const person = participantsData.find(p => p.name === selectedName);
+  document.getElementById("joinBtn").onclick = () => {
+    const name = nameSelect.value;
+    if (!name) return alert("名前を選択してください");
 
-      if (!confirm(`「${selectedName}」さんで間違いない？`)) return;
+    const p = participantsData.find(x => x.name === name);
+    if (!confirm(`${name}さんで間違いない？`)) return;
 
-      seatInfo.textContent = `あなたの席は 🎄 ${person.table}卓 ／ ${person.number}番 です ❄️`;
+    seatInfo.textContent = `あなたの席：${p.table}卓 ／ ${p.number}番`;
 
-      const participantRef = ref(db, "participants/" + person.name);
-      set(participantRef, {
-        name: person.name,
-        number: person.number,
-        table: person.table,
-        timestamp: new Date().toLocaleString()
-      });
+    const newRef = push(ref(db, "participants"));
+    set(newRef, {
+      name: p.name,
+      number: p.number,
+      table: p.table,
+      time: new Date().toLocaleString()
+    })
+    .then(() => alert("参加を記録しました！"))
+    .catch(e => alert("Firebaseエラー\n" + e.message));
+  };
 
-      alert("参加を記録しました！⛄");
-    });
-
-    /* 管理者ログイン */
-    adminLoginBtn.addEventListener("click", () => {
-      if (adminPasswordInput.value === ADMIN_PASSWORD) {
-        alert("管理者ログイン成功 🎄");
-        adminSection.style.display = "block";
-        adminPasswordInput.value = "";
-      } else {
-        alert("パスワードが違います ❌");
-      }
-    });
-
-    /* 参加者一覧リアルタイム */
-    const participantsRef = ref(db, "participants");
-    onValue(participantsRef, (snapshot) => {
-      adminList.innerHTML = "";
-      snapshot.forEach((child) => {
-        const data = child.val();
-        const li = document.createElement("li");
-        li.textContent = `${data.number}番 - ${data.name} (${data.table})`;
-        adminList.appendChild(li);
-      });
-    });
-
-    /* リセット */
-    resetBtn.addEventListener("click", () => {
-      if (confirm("本当にリストを削除しますか？❄️")) {
-        remove(participantsRef);
-      }
-    });
-
-  </script>
-
-  <!-- ❄️ 雪のエフェクト生成 -->
-  <script>
-    for (let i = 0; i < 25; i++) {
-      const snow = document.createElement("div");
-      snow.className = "snow";
-      snow.style.left = Math.random() * 100 + "vw";
-      snow.style.animationDuration = 8 + Math.random() * 5 + "s";
-      snow.style.opacity = Math.random();
-      snow.style.width = snow.style.height = 5 + Math.random() * 6 + "px";
-      document.body.appendChild(snow);
+  document.getElementById("adminLoginBtn").onclick = () => {
+    if (document.getElementById("adminPassword").value === ADMIN_PASSWORD) {
+      adminSection.style.display = "block";
+      alert("管理者ログイン成功");
+    } else {
+      alert("パスワードが違います");
     }
-  </script>
+  };
+
+  const participantsRef = ref(db, "participants");
+  onValue(participantsRef, snap => {
+    adminList.innerHTML = "";
+    snap.forEach(c => {
+      const d = c.val();
+      const li = document.createElement("li");
+      li.textContent = `${d.number}番 ${d.name} (${d.table})`;
+      adminList.appendChild(li);
+    });
+  });
+
+  document.getElementById("resetBtn").onclick = () => {
+    if (confirm("本当にリセット？")) remove(participantsRef);
+  };
+</script>
+
+<script>
+  for (let i = 0; i < 25; i++) {
+    const s = document.createElement("div");
+    s.className = "snow";
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.width = s.style.height = 5 + Math.random() * 6 + "px";
+    s.style.animationDuration = 8 + Math.random() * 5 + "s";
+    document.body.appendChild(s);
+  }
+</script>
 
 </body>
 </html>
